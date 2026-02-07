@@ -86,14 +86,19 @@
     <label>Preço do VIP atual (R$)</label>
     <input id="precoAtual" type="number" step="0.01" placeholder="Ex: 9.00" />
 
-    <label>Dias totais do VIP</label>
-    <input id="diasTotais" type="number" placeholder="Ex: 30" />
+    <label>Duração do VIP</label>
+    <input type="text" value="30 dias" disabled />
 
     <label>Dias restantes do VIP atual</label>
     <input id="diasRestantes" type="number" placeholder="Ex: 20" />
 
     <label>Preço do VIP novo (R$)</label>
     <input id="precoNovo" type="number" step="0.01" placeholder="Ex: 37.50" />
+
+    <label style="margin-top:14px; display:flex; align-items:center; gap:8px;">
+      <input type="checkbox" id="upgradeIntegral" />
+      Quero ficar com o VIP novo por <strong>30 dias completos</strong>
+    </label>
 
     <button onclick="calcular()">Calcular Upgrade</button>
 
@@ -103,28 +108,42 @@
   <script>
     function calcular() {
       const precoAtual = parseFloat(document.getElementById('precoAtual').value);
-      const diasTotais = parseInt(document.getElementById('diasTotais').value);
+      const diasTotais = 30; // duração fixa do VIP
       const diasRestantes = parseInt(document.getElementById('diasRestantes').value);
       const precoNovo = parseFloat(document.getElementById('precoNovo').value);
+      const upgradeIntegral = document.getElementById('upgradeIntegral').checked;
 
-      if (!precoAtual || !diasTotais || !diasRestantes || !precoNovo) {
+      if (!precoAtual || !diasRestantes || !precoNovo) {
         alert('Preencha todos os campos corretamente');
         return;
       }
 
       const valorDiaAtual = precoAtual / diasTotais;
       const valorDiaNovo = precoNovo / diasTotais;
-
       const credito = valorDiaAtual * diasRestantes;
-      const custoNovoPeriodo = valorDiaNovo * diasRestantes;
-      const valorUpgrade = custoNovoPeriodo - credito;
+
+      let valorUpgrade = 0;
+      let descricao = '';
+
+      if (upgradeIntegral) {
+        // VIP novo por 30 dias completos
+        valorUpgrade = precoNovo - credito;
+        descricao = `Upgrade para <strong>30 dias completos</strong> do VIP novo`;
+      } else {
+        // VIP novo apenas pelos dias restantes
+        const custoNovoPeriodo = valorDiaNovo * diasRestantes;
+        valorUpgrade = custoNovoPeriodo - credito;
+        descricao = `Upgrade mantendo os <strong>${diasRestantes} dias</strong> restantes`;
+      }
+
+      if (valorUpgrade < 0) valorUpgrade = 0;
 
       const resultado = document.getElementById('resultado');
       resultado.style.display = 'block';
       resultado.innerHTML = `
+        ${descricao}<br><br>
         Valor por dia (VIP atual): <span>R$ ${valorDiaAtual.toFixed(2)}</span><br>
-        Crédito restante: <span>R$ ${credito.toFixed(2)}</span><br>
-        Valor do VIP novo no período: <span>R$ ${custoNovoPeriodo.toFixed(2)}</span><br><br>
+        Crédito restante: <span>R$ ${credito.toFixed(2)}</span><br><br>
         <strong>Valor a pagar no upgrade:</strong> <span>R$ ${valorUpgrade.toFixed(2)}</span>
       `;
     }
